@@ -1,0 +1,153 @@
+/* ===== WIDGETS DÉPLAÇABLES / REDIMENSIONNABLES ===== */
+
+.widget-frame {
+    position: fixed;
+    left: 2rem;
+    bottom: 2rem;
+    transform-origin: bottom left;
+    z-index: 40;
+    pointer-events: auto;
+    cursor: grab;
+}
+
+.widget-frame:not(:has(.active)) {
+    display: none;
+}
+
+.widget-frame.dragging,
+.widget-frame.dragging * {
+    cursor: grabbing !important;
+    user-select: none;
+}
+
+.widget-frame.dragging,
+.widget-frame.resizing {
+    z-index: 45;
+}
+
+/* La taille est gérée par le cadre : plus de mise à l'échelle propre au calendrier */
+.widget-frame .calendar-card {
+    transform: none !important;
+    margin-bottom: 0 !important;
+}
+
+.widget-frame button,
+.widget-frame a,
+.widget-frame input,
+.widget-frame select {
+    cursor: pointer;
+}
+
+.widget-resize-grip {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(20, 20, 28, 0.85);
+    border: 1px solid var(--glass-border);
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 11px;
+    cursor: nesw-resize !important;
+    opacity: 0;
+    transform: scale(0.85);
+    transition: opacity 0.2s, transform 0.2s, background 0.2s;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 5;
+}
+
+.widget-frame:hover .widget-resize-grip,
+.widget-frame.resizing .widget-resize-grip {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.widget-resize-grip:hover {
+    background: var(--accent-color);
+    color: white;
+}
+
+/* ===== SUGGESTIONS DE RECHERCHE (sous les raccourcis) ===== */
+
+.search-suggestions {
+    display: none;
+    margin-top: 5vh;
+    width: 90%;
+    max-width: 650px;
+    padding: 6px;
+    pointer-events: auto;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.search-suggestions.visible {
+    display: block;
+    animation: suggestionsIn 0.18s ease-out;
+}
+
+@keyframes suggestionsIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: none; }
+}
+
+.suggestion-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 14px;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.suggestion-item.active {
+    background: var(--glass-bg-hover);
+}
+
+.suggestion-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    flex-shrink: 0;
+}
+
+.suggestion-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+}
+
+.suggestion-title {
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 0.95rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.suggestion-url {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.78rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.suggestion-hint {
+    flex-shrink: 0;
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.55);
+    background: rgba(255, 255, 255, 0.08);
+    padding: 4px 10px;
+    border-radius: 10px;
+}

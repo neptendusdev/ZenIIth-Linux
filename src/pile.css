@@ -1,0 +1,399 @@
+/* ==========================================================================
+   Zenith - Piles d'onglets, chargement sans flash blanc, menu paramètres
+   ========================================================================== */
+
+/* ---------- Onglets d'une pile ---------- */
+.tab.in-pile {
+  background: color-mix(in srgb, var(--pile-color) 9%, transparent);
+  border-radius: 0;
+}
+.tab.in-pile:hover { background: color-mix(in srgb, var(--pile-color) 16%, var(--bg-hover)); }
+.tab.in-pile.active { background: var(--bg-primary); }
+.tab.in-pile.pile-last { border-top-right-radius: var(--radius); margin-right: 6px; }
+
+/* Liseré de couleur en haut des onglets de la pile */
+.tab.in-pile::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 2px;
+  background: var(--pile-color);
+  opacity: 0.55;
+}
+.tab.in-pile.active::before { opacity: 1; }
+.tab.in-pile.pile-last::before { right: 6px; border-top-right-radius: 2px; }
+
+.tab.pile-hidden { display: none; }
+
+/* ---------- Onglet de tête de la pile (logo + nom) : même forme qu'un onglet ---------- */
+.pile-handle {
+  height: 36px;
+  min-width: 40px;
+  max-width: 200px;
+  padding: 0 12px 0 9px;
+  margin-left: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  background: color-mix(in srgb, var(--pile-color) 14%, transparent);
+  border-radius: var(--radius) var(--radius) 0 0;
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+  transition: background 0.15s, filter 0.15s, transform 0.15s ease-out;
+}
+.pile-handle::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 2px;
+  background: var(--pile-color);
+}
+.pile-handle:not(.named):not(.collapsed) { padding-right: 9px; }
+.pile-handle:first-child { margin-left: 0; }
+.pile-handle:hover { background: color-mix(in srgb, var(--pile-color) 24%, var(--bg-hover)); }
+.pile-handle.pile-dragging, .tab.pile-dragging { opacity: 0.92; }
+
+/* Logo détouré : découpe ronde sombre autour du logo */
+.pile-logo {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #141414;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.pile-logo img { width: 14px; height: 14px; object-fit: contain; display: block; pointer-events: none; }
+.pile-logo.custom img { width: 100%; height: 100%; object-fit: cover; }
+
+.pile-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--pile-color);
+  white-space: nowrap;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Couleur choisie : onglet de tête entièrement coloré */
+.pile-handle.solid { background: var(--pile-color); }
+.pile-handle.solid::before { display: none; }
+.pile-handle.solid:hover { background: var(--pile-color); filter: brightness(1.1); }
+.pile-handle.solid .pile-label { color: var(--pile-text); }
+
+/* Pile réduite : même forme d'onglet, avec le nombre d'onglets */
+.pile-handle.collapsed { margin-right: 6px; }
+
+/* Pastilles de couleur dans le menu de la pile */
+.pile-swatches {
+  display: flex;
+  gap: 8px;
+  padding: 6px 12px 4px;
+}
+.pile-swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  padding: 0;
+  transition: transform 0.12s;
+}
+.pile-swatch:hover { transform: scale(1.15); }
+.pile-swatch.active { border-color: var(--text-primary); }
+
+/* ---------- Pas de flash blanc au chargement ---------- */
+.browser-view { background: var(--bg-tertiary); }
+webview.browser-view { background: var(--bg-tertiary); transition: opacity 0.12s ease-out; }
+webview.browser-view.wv-pending { opacity: 0; transition: none; }
+
+/* Onglet ouvert en arrière-plan : la webview doit être affichée (invisible) pour charger */
+.browser-view.bg-loading:not(.active) { display: flex; visibility: hidden; pointer-events: none; z-index: -1; }
+
+/* ---------- Menu paramètres : sections rétractables ---------- */
+#settings-menu {
+  max-height: calc(100vh - var(--titlebar-h) - var(--navbar-h) - 24px);
+  overflow-y: auto;
+}
+.settings-section.collapsible .settings-title {
+  user-select: none;
+  border-radius: 4px;
+  margin: -4px -6px 10px;
+  padding: 4px 6px;
+  transition: background 0.12s, color 0.12s, margin 0.15s;
+}
+.settings-section.collapsible .settings-title:hover { background: var(--bg-hover); color: var(--text-secondary); }
+.settings-chevron {
+  margin-left: auto;
+  width: 14px;
+  height: 14px;
+  transition: transform 0.18s;
+}
+.settings-section.collapsible.collapsed .settings-chevron { transform: rotate(-90deg); }
+.settings-section.collapsible.collapsed .settings-title { margin-bottom: -4px; }
+.settings-section.collapsible.collapsed > :not(.settings-title) { display: none; }
+
+/* ---------- Liste des raccourcis (paramètres) ---------- */
+.shortcut-item { gap: 12px; }
+.shortcut-item .shortcut-key { white-space: nowrap; flex-shrink: 0; }
+/* Libellé sur deux lignes : la touche reste alignée sur la première */
+.shortcut-item.multiline { align-items: flex-start; line-height: 1.45; }
+
+/* ---------- Tête de pile : état actif + bouton réduire ---------- */
+.pile-handle { padding-right: 6px; }
+.pile-handle.active { filter: brightness(1.12); box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--pile-text) 85%, transparent); }
+.pile-collapse-btn {
+  width: 20px;
+  height: 20px;
+  margin-left: 2px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--pile-text);
+  opacity: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: opacity 0.15s, background 0.15s;
+}
+.pile-collapse-btn .icon { width: 13px; height: 13px; stroke-width: 2; }
+.pile-handle:hover .pile-collapse-btn, .pile-handle.collapsed .pile-collapse-btn { opacity: 0.85; }
+.pile-collapse-btn:hover { opacity: 1; background: rgba(0, 0, 0, 0.18); }
+
+/* ---------- Page de la pile ---------- */
+.pile-page {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  overflow-y: auto;
+  flex-direction: column;
+}
+.pp-container { max-width: 1200px; width: 100%; margin: 0 auto; padding: 36px 40px 60px; }
+
+.pp-header {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding: 22px 24px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--pile-color) 30%, var(--bg-secondary)), var(--bg-secondary) 70%);
+  border: 1px solid color-mix(in srgb, var(--pile-color) 35%, var(--border));
+  flex-wrap: wrap;
+}
+.pp-logo {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  background: #141414;
+  box-shadow: 0 0 0 4px var(--pile-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  transition: transform 0.15s;
+}
+.pp-logo:hover { transform: scale(1.05); }
+.pp-logo img { width: 44px; height: 44px; object-fit: contain; }
+.pp-logo.custom img { width: 100%; height: 100%; object-fit: cover; }
+
+.pp-title-block { flex: 1; min-width: 220px; }
+.pp-title {
+  font-size: 26px;
+  font-weight: 650;
+  display: inline-block;
+  padding: 2px 6px;
+  margin-left: -6px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+.pp-title:hover { background: rgba(255, 255, 255, 0.06); }
+.pp-subtitle { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+.pp-swatches { display: flex; gap: 8px; margin-top: 12px; }
+.pp-swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  padding: 0;
+  transition: transform 0.12s;
+}
+.pp-swatch:hover { transform: scale(1.15); }
+.pp-swatch.active { border-color: var(--text-primary); }
+
+.pp-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.pp-btn {
+  height: 34px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: inherit;
+  transition: background 0.15s, border-color 0.15s;
+}
+.pp-btn .icon { width: 14px; height: 14px; }
+.pp-btn:hover { background: var(--bg-hover); border-color: var(--bg-active); }
+.pp-btn.primary { background: var(--pile-color); color: var(--pile-text); border-color: var(--pile-color); }
+.pp-btn.primary:hover { filter: brightness(1.1); background: var(--pile-color); }
+.pp-btn.danger { color: #ef4444; border-color: rgba(239, 68, 68, 0.3); }
+.pp-btn.danger:hover { background: rgba(239, 68, 68, 0.1); }
+
+.pp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+  margin-top: 28px;
+}
+.pp-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+  user-select: none;
+}
+.pp-card:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--pile-color) 60%, var(--border)); box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35); }
+.pp-card.last-active { border-color: var(--pile-color); }
+.pp-card.dragging { opacity: 0.4; }
+.pp-card.drop-before { box-shadow: -4px 0 0 var(--pile-color); }
+.pp-card.drop-after { box-shadow: 4px 0 0 var(--pile-color); }
+
+.pp-thumb {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  background: var(--bg-tertiary);
+  overflow: hidden;
+}
+.pp-shot { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; pointer-events: none; }
+.pp-noshot {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--pile-color) 18%, transparent), transparent 70%);
+  color: var(--text-muted);
+}
+.pp-noshot img { width: 48px; height: 48px; border-radius: 10px; pointer-events: none; }
+.pp-noshot .icon { width: 40px; height: 40px; stroke-width: 1.2; }
+.pp-badge {
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 10px;
+  background: var(--pile-color);
+  color: var(--pile-text);
+}
+.pp-card-close {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s;
+}
+.pp-card:hover .pp-card-close { opacity: 1; }
+.pp-card-close:hover { background: #e5484d; }
+.pp-card-close .icon { width: 13px; height: 13px; stroke-width: 2; }
+
+.pp-card-info { display: flex; align-items: center; gap: 10px; padding: 10px 12px; }
+.pp-favicon { width: 16px; height: 16px; border-radius: 3px; flex-shrink: 0; display: flex; color: var(--text-muted); }
+.pp-card-text { min-width: 0; flex: 1; }
+.pp-card-title { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pp-card-url { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+
+.pp-add {
+  border: 2px dashed var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: inherit;
+  min-height: 190px;
+  align-items: center;
+  justify-content: center;
+}
+.pp-add:hover { border-color: var(--pile-color); color: var(--text-primary); }
+.pp-add-inner { display: flex; flex-direction: column; align-items: center; gap: 10px; font-size: 13px; }
+.pp-add-inner .icon { width: 28px; height: 28px; }
+
+/* ---------- Tête : nombre d'onglets et flèche au survol uniquement ---------- */
+.pile-count {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--pile-text);
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 0 6px;
+  line-height: 16px;
+  display: none;
+}
+.pile-handle:hover .pile-count { display: inline-block; }
+.pile-collapse-btn { display: none; }
+.pile-handle:hover .pile-collapse-btn { display: flex; opacity: 0.85; }
+.pile-handle.collapsed .pile-collapse-btn { opacity: 0; }
+.pile-handle.collapsed:hover .pile-collapse-btn { opacity: 0.85; }
+.pile-handle:not(:hover) { padding-right: 9px; }
+.pile-handle:not(.named):not(:hover) { padding-right: 9px; }
+
+/* ---------- Page de pile : logo avec survol crayon ---------- */
+.pp-logo { position: relative; }
+.pp-logo-edit {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.78);
+  color: #fff;
+  opacity: 0;
+  border-radius: 50%;
+  transition: opacity 0.15s;
+}
+.pp-logo-edit .icon { width: 24px; height: 24px; stroke-width: 1.8; }
+.pp-logo:hover .pp-logo-edit { opacity: 1; }
+.pp-logo:hover { transform: none; }
+
+/* ---------- Page de pile : nom modifiable directement ---------- */
+.pp-title {
+  outline: none;
+  cursor: text;
+  min-width: 120px;
+  border: 1px solid transparent;
+}
+.pp-title:focus {
+  background: rgba(0, 0, 0, 0.25);
+  border-color: color-mix(in srgb, var(--pile-color) 70%, transparent);
+}
+.pp-title:empty::before {
+  content: attr(data-placeholder);
+  color: var(--text-muted);
+  font-weight: 500;
+}
